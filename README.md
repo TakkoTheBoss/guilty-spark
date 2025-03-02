@@ -183,7 +183,7 @@ Install the necessary packages using pip:
 pip install requests colorama
 ```
 
-Additionally, Guilty spark uses Radamsa for fuzzing. Please ensure Radamsa is installed and available in your system's PATH.
+Additionally, Guilty spark uses [Radamsa](https://gitlab.com/akihe/radamsa) for fuzzing. Please ensure Radamsa is installed and available in your system's PATH.
 
 ## License
 
