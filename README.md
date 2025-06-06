@@ -1,3 +1,5 @@
+![[guilty-spark-icon.png]]
+
 # Guilty Spark: API URL Path Prediction and Fuzzing Tool
 
 Guilty Spark is an advanced command-line tool designed for penetration testers and security researchers (with proper authorization) to discover hidden API endpoints. It leverages probabilistic modeling techniques—specifically Markov chains with Laplace smoothing—to generate candidate endpoints based on known API patterns. Additionally, Guilty spark can augment its candidate pool with fuzzing techniques using Radamsa. The tool also supports appending static URL query parameters to every request and presents its output in a visually appealing, color-coded format.
