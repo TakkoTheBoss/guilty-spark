@@ -115,13 +115,13 @@ If no arguments are provided or if the `-h` flag is used, Guilty Spark displays 
 **Example 1: Using JSON files for endpoints and common words with fuzzing enabled**
 
 ```bash
-python3 spark.py --target "https://something.com" --eplist endpoints.json --wordfile words.json --fuzz --iters 10 --throttle 0.5 --static-pattern "?api_key=yourkey" --threshold 0.001
+python3 sparks.py --target "https://something.com" --eplist endpoints.json --wordfile words.json --fuzz --iters 10 --throttle 0.5 --static-pattern "?api_key=yourkey" --threshold 0.001
 ```
 
 **Example 2: Using inline comma-separated lists**
 
 ```bash
-python3 spark.py --target "https://something.com" --eps "/api/v1/users, /api/v1/products, /api/v1/orders" --words "admin,login,logout,register,config" --static-pattern "?api_key=yourkey" --throttle 0.25 --threshold 0.001
+python3 sparks.py --target "https://something.com" --eps "/api/v1/users, /api/v1/products, /api/v1/orders" --words "admin,login,logout,register,config" --static-pattern "?api_key=yourkey" --throttle 0.25 --threshold 0.001
 ```
 
 # Mathematical Notation

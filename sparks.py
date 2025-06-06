@@ -1,6 +1,10 @@
 import re, json, time, sys, requests, subprocess, argparse
+import urllib3
 from collections import defaultdict, Counter
 from colorama import init, Fore, Style
+
+# Disable TLS/SSL warnings since we're ignoring SSL checks.
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Initialize colorama for colored terminal output.
 init(autoreset=True)
@@ -86,15 +90,23 @@ def candidate_probability(candidate, chain, order=2, vocab_size=None, alpha=1.0)
         prob *= (count_next + alpha) / (total_count + alpha * vocab_size)
     return prob
 
-def validate_candidate(base_url, candidate, static_pattern="", timeout=5):
+def validate_candidate(base_url, candidate, static_pattern="", timeout=5, proxy=None):
     """
     Validates a candidate endpoint by sending an HTTP GET request.
     Appends the static query parameters to the URL.
     Considers an endpoint valid if it returns status 200, 401, or 403.
+    If a proxy is provided, sends the request through the proxy and disables SSL checks.
     """
     url = base_url.rstrip("/") + candidate + static_pattern
+    proxies = None
+    if proxy:
+        # Assume the provided proxy is in the format "server:port"
+        proxies = {
+            "http": f"http://{proxy}",
+            "https": f"http://{proxy}"
+        }
     try:
-        response = requests.get(url, timeout=timeout)
+        response = requests.get(url, timeout=timeout, proxies=proxies, verify=False)
         if response.status_code in [200, 401, 403]:
             return True, response.status_code
         else:
@@ -129,10 +141,10 @@ def fuzz_candidate(candidate, iterations=5):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Oracle: API URL Path Prediction and Fuzzing Tool\n\n"
+        description="Guilty Spark: API URL Path Prediction and Fuzzing Tool\n\n"
                     "Usage examples:\n"
-                    "  python oracle.py --target \"https://something.com\" --eplist endpoints.json --wordfile words.json --fuzz --iters 10 --throttle 0.5 --static-pattern \"?api_key=yourkey\" --threshold 0.001\n"
-                    "  python oracle.py --target \"https://something.com\" --eps \"/api/v1/users, /api/v1/products, /api/v1/orders\" --words \"admin,login,logout,register,config\" --static-pattern \"?api_key=yourkey\" --throttle 0.25 --threshold 0.001\n",
+                    "  python sparks.py --target \"https://something.com\" --eplist endpoints.json --wordfile words.json --fuzz --iters 10 --throttle 0.5 --static-pattern \"?api_key=yourkey\" --proxy \"192.168.1.99:8080\" --threshold 0.001\n"
+                    "  python sparks.py --target \"https://something.com\" --eps \"/api/v1/users, /api/v1/products, /api/v1/orders\" --words \"admin,login,logout,register,config\" --static-pattern \"?api_key=yourkey\" --throttle 0.25 --proxy \"192.168.1.99:8080\" --threshold 0.001\n",
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument('--target', required=True, help='Target base URL (e.g., "https://something.com")')
@@ -157,6 +169,9 @@ def main():
     
     # Probability threshold for candidate filtering.
     parser.add_argument('--threshold', type=float, default=0.001, help='Probability threshold for candidate filtering (default 0.001)')
+    
+    # Proxy argument for HTTP/HTTPS proxy (server:port).
+    parser.add_argument('--proxy', help='HTTP/HTTPS proxy (e.g., "192.168.1.99:8080") to send requests through; disables SSL checks')
     
     # If no arguments are provided, print help and exit.
     if len(sys.argv) == 1:
@@ -236,6 +251,7 @@ def main():
     fuzz_iterations = args.iters if fuzz_enabled else 0
     static_pattern = args.static_pattern  # e.g., "?api_key=yourkey"
     threshold_probability = args.threshold  # probability threshold for candidate filtering
+    proxy = args.proxy  # proxy string "server:port"
     
     # --- Pipeline Execution ---
     
@@ -279,7 +295,7 @@ def main():
     # 6. Validate candidates by sending HTTP GET requests.
     print("\n" + Fore.MAGENTA + Style.BRIGHT + "Validating Candidate Endpoints:")
     for candidate, prob in scored_candidates:
-        is_valid, status = validate_candidate(base_url, candidate, static_pattern=static_pattern)
+        is_valid, status = validate_candidate(base_url, candidate, static_pattern=static_pattern, proxy=proxy)
         if is_valid:
             print(Fore.GREEN + f"Valid endpoint: {candidate} (Status: {status}, Probability: {prob:.6f})")
         else:
