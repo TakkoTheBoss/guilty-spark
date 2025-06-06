@@ -1,4 +1,4 @@
-![[guilty-spark-icon.png]]
+![Guilty Spark Icon PNG](guilty-spark-icon.png "Guilty Spark")
 
 # Guilty Spark: API URL Path Prediction and Fuzzing Tool
 
